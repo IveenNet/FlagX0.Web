@@ -7,7 +7,8 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Agregar servicios al contenedor.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+                       ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -41,8 +42,11 @@ builder.Services.AddControllersWithViews();
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
-// Registro del servicio IFlagApplication
-builder.Services.AddScoped<IFlagApplication, FlagApplication>();
+// Registro de servicios para casos de uso
+builder.Services.AddScoped<ICreateFlagApplication, CreateFlagApplication>();
+builder.Services.AddScoped<IGetFlagApplication, GetFlagApplication>();
+builder.Services.AddScoped<IFlagUserDetails, FlagUserDetails>();
+builder.Services.AddScoped<IUpdateFlagApplication,  UpdateFlagApplication>();
 
 var app = builder.Build();
 
@@ -95,6 +99,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
