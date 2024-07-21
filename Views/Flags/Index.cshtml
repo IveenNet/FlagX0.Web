@@ -2,6 +2,27 @@
 
 <a asp-action="Create" asp-controller="Flags" class="btn btn-primary">Create Flag</a>
 
+<div class="row">
+    <form asp-action="Index" asp-controller="Flags" method="get" class="row row-cols-lg-auto g-3 align-items-center">
+        <div class="col-12">
+            <label class="visually-hidden" for="InlineFromSearch">Search</label>
+            <div class="input-group">
+                <div class="input-group-text">Search</div>
+                <input type="text" name="search" class="form-control" id="InlineFromSearch" placeholder="FlagName" value="@Model.Pagination.search" />
+            </div>
+        </div>
+
+        <div class="col-12">
+            <label class="visually-hidden" for="inlineFormSelect">Items per page</label>
+            <select asp-for="Pagination.pageSize" name="size" class="form-control" asp-items="@(new SelectList(Model.SelectOption))"></select>
+        </div>
+
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </div>
+    </form>
+</div>
+
 <table class="table">
     <thead>
         <tr>
@@ -11,7 +32,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var flag in Model.Flags)
+        @foreach (var flag in Model.Pagination.items)
         {
             <tr>
                 <th scope="row">@flag.Name</th>
@@ -21,9 +42,9 @@
                     </div>
                 </td>
                 <td>
-                    <button type="button" class="btn btn-outline-danger">
+                    <a asp-action="Delete" asp-controller="Flags" asp-route-flagName="@flag.Name" class="btn btn-outline-danger">
                         <i class="bi bi-archive"></i>
-                    </button>
+                    </a>
                     <a asp-action="GetSingle" asp-controller="Flags" asp-route-flagName="@flag.Name" class="btn btn-outline-primary">
                         <i class="bi bi-pencil"></i> Edit
                     </a>
@@ -32,3 +53,45 @@
         }
     </tbody>
 </table>
+
+<nav aria-label="Page navigation example">
+    <ul class="pagination">
+        @if (Model.Pagination.currentPage > 1)
+        {
+            <li class="page-item">
+                <a class="page-link" aria-label="Previous" asp-action="Index" asp-controller="Flags"
+                   asp-route-search="@Model.Pagination.search" asp-route-page="@(Model.Pagination.currentPage - 1)"
+                   asp-route-size="@Model.Pagination.pageSize">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+        }
+
+        <li class="page-item">
+            <a class="page-link" href="#">@Model.Pagination.currentPage</a>
+        </li>
+        @{
+            int totalPages = (int)Math.Ceiling(Model.Pagination.totalItems / (double)Model.Pagination.pageSize);
+
+            if (Model.Pagination.currentPage < totalPages)
+            {
+                <li class="page-item">
+                    <a class="page-link" asp-action="Index" asp-controller="Flags" asp-route-page="@(Model.Pagination.currentPage + 1)"
+                       asp-route-size="@Model.Pagination.pageSize" asp-route-search="@Model.Pagination.search">
+                        @(Model.Pagination.currentPage + 1)
+                    </a>
+                </li>
+            }
+
+            if (Model.Pagination.currentPage < totalPages - 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" asp-action="Index" asp-controller="Flags" asp-route-page="@totalPages"
+                       asp-route-size="@Model.Pagination.pageSize" asp-route-search="@Model.Pagination.search">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            }
+        }
+    </ul>
+</nav>

@@ -1,9 +1,11 @@
 ﻿using FlagX0.Web.Application.DTO;
 using FlagX0.Web.Application.Interface.UseCases;
+using FlagX0.Web.Application.UseCases.Flags;
 using FlagX0.Web.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ROP;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 
 namespace FlagX0.Web.Controllers
@@ -15,16 +17,20 @@ namespace FlagX0.Web.Controllers
         private readonly ICreateFlagApplication _flagApplication;
         private readonly IGetFlagApplication _getFlagApplication;
         private readonly IUpdateFlagApplication _updateFlagApplication;
+        private readonly IDeleteFlagApplication _deleteFlagApplication;
+        private readonly IGetPaginatedFlagApplication _getPaginatedFlagApplication;
 
-        public FlagsController(ICreateFlagApplication flagApplication, IGetFlagApplication getFlagApplication, IUpdateFlagApplication updateFlagApplication)
+        public FlagsController(ICreateFlagApplication flagApplication, IGetFlagApplication getFlagApplication, IUpdateFlagApplication updateFlagApplication, IDeleteFlagApplication deleteFlagApplication, IGetPaginatedFlagApplication getPaginatedFlagApplication)
         {
             _flagApplication = flagApplication;
             _getFlagApplication = getFlagApplication;
             _updateFlagApplication = updateFlagApplication;
+            _deleteFlagApplication = deleteFlagApplication;
+            _getPaginatedFlagApplication = getPaginatedFlagApplication;
         }
-
-        [HttpGet("")]
-        public async Task<IActionResult> Index()
+        /*        [HttpGet("")]
+        [HttpGet("(page:int)")]
+        public async Task<IActionResult> Index(string)
         {
             var result = await _getFlagApplication.Execute();
             if (result.Success)
@@ -35,6 +41,18 @@ namespace FlagX0.Web.Controllers
             // Manejo de errores, redirigir o mostrar un mensaje
             ModelState.AddModelError(string.Empty, result.Errors.FirstOrDefault()?.Message ?? "An error occurred.");
             return View(new FlagIndexViewModel() { Flags = new List<FlagDto>() });
+        }*/
+        [HttpGet("")]
+        [HttpGet("(page:int)")]
+        public async Task<IActionResult> Index(string? search,
+             [Range(1, int.MaxValue, ErrorMessage = "page must be > 1")] int page = 1, int size = 5)
+        {
+            if (!ModelState.IsValid) page = 1;
+
+            var listFlags = (await _getPaginatedFlagApplication.Execute(search, page, size)).Throw();
+
+            // Manejo de errores, redirigir o mostrar un mensaje
+            return View(new FlagIndexViewModel() { Pagination = listFlags });
         }
 
         [HttpGet("{flagName}")]
@@ -52,7 +70,7 @@ namespace FlagX0.Web.Controllers
                 return View("Error"); // Asegúrate de tener una vista de error configurada
             }
 
-            var singleFlagViewModel = new SingleFlagViewModel(singleFlagResult.Value, message);
+            var singleFlagViewModel = new SingleFlagViewModel(singleFlagResult.Value, message ?? string.Empty);
             return View("SingleFlag", singleFlagViewModel);
         }
 
@@ -96,19 +114,27 @@ namespace FlagX0.Web.Controllers
         public async Task<IActionResult> Update(FlagDto flag)
         {
             // Añadir logging para ver si se llama al método
-            Debug.WriteLine($"GetSingle llamado con flagName: {flag.Name}");
+            Debug.WriteLine($"Update llamado con flagName: {flag.Name}");
 
             var singleFlagResult = await _updateFlagApplication.Execute(flag);
 
             if (!singleFlagResult.Success)
             {
-                // Manejo de errores, por ejemplo, redirigir a una página de error o mostrar un mensaje de error
-                ModelState.AddModelError(string.Empty, singleFlagResult.Errors.FirstOrDefault()?.Message ?? "An error occurred.");
-                return View("Error"); // Asegúrate de tener una vista de error configurada
+                var singleFlagViewModel = new SingleFlagViewModel(flag, singleFlagResult.Errors.FirstOrDefault()?.Message ?? "An error occurred.");
+                return View("SingleFlag", singleFlagViewModel);
             }
 
-            var singleFlagViewModel = new SingleFlagViewModel(singleFlagResult.Value, singleFlagResult.Success ? "Update correctly" : singleFlagResult.Errors.First().Message);
-            return View("SingleFlag", singleFlagViewModel);
+            return RedirectToAction("GetSingle", new { flagName = flag.Name, message = "Update successfully!" });
+        }
+
+        [HttpGet("delete/{flagName}")]
+        public async Task<IActionResult> Delete(string flagName)
+        {
+            var isDeleted = await _deleteFlagApplication.Execute(flagName);
+
+            if (isDeleted.Success) return RedirectToAction("");
+
+            return RedirectToAction("GetSingle", new { flagName = flagName, message = "Updated correctly" });
         }
     }
 }

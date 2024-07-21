@@ -12,5 +12,12 @@ namespace FlagX0.Web.Infrastructure.Data
             : base(options)
         {
         }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            builder.Entity<FlagEntity>().HasQueryFilter(a => !a.IsDeleted);
+
+            base.OnModelCreating(builder);
+        }
     }
 }

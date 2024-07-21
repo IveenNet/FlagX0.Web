@@ -12,4 +12,5 @@ namespace FlagX0.Web.Models.ViewModels
         public string? Message { get; set; }
 
     }*/
+
 }
