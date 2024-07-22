@@ -12,6 +12,7 @@ namespace FlagX0.Web.Controllers
 {
     [Authorize]
     [Route("[controller]")]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class FlagsController : Controller
     {
         /*

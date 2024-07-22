@@ -1,8 +1,10 @@
-using FlagX0.Web.Infrastructure.Data;
 using FlagX0.Web.Application.Interface.UseCases;
 using FlagX0.Web.Application.UseCases.Flags;
+using FlagX0.Web.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Net.Http.Headers;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,17 +48,37 @@ builder.Logging.AddConsole();
 builder.Services.AddScoped<ICreateFlagApplication, CreateFlagApplication>();
 builder.Services.AddScoped<IGetFlagApplication, GetFlagApplication>();
 builder.Services.AddScoped<IFlagUserDetails, FlagUserDetails>();
-builder.Services.AddScoped<IUpdateFlagApplication,  UpdateFlagApplication>();
-builder.Services.AddScoped<IDeleteFlagApplication,  DeleteFlagApplication>();
-builder.Services.AddScoped<IGetPaginatedFlagApplication,  GetPaginatedFlagApplication>();
+builder.Services.AddScoped<IUpdateFlagApplication, UpdateFlagApplication>();
+builder.Services.AddScoped<IDeleteFlagApplication, DeleteFlagApplication>();
+builder.Services.AddScoped<IGetPaginatedFlagApplication, GetPaginatedFlagApplication>();
 builder.Services.AddScoped<FlagsApplication>();
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("token", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        In = ParameterLocation.Header,
+        Name = HeaderNames.Authorization,
+        Scheme = "Bearer"
+    });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "FlagX0 API", Version = "v1" });
+});
+
+builder.Services.AddAuthorization();
+builder.Services.AddAuthentication().AddCookie("Identity.Bearer");
 
 var app = builder.Build();
 
-// Configurar el pipeline de solicitudes HTTP.
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
+
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "FlagX0 API V1");
+    });
 }
 else
 {
@@ -108,6 +130,12 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
 app.MapRazorPages();
+
+// Asegúrate de mapear las rutas del controlador personalizado
+app.MapControllers();
+
+app.MapGroup("/account").MapIdentityApi<IdentityUser>();
 
 app.Run();

@@ -16,7 +16,9 @@ namespace FlagX0.Web.Application.UseCases.Flags
             return response.Select(a => new FlagDto(a.Name, a.Value, a.Id)).ToList();
         }
 
-        async Task<Result<FlagDto>> IGetFlagApplication.Execute(string flagName) => await GetFromDb(flagName).Map(x => x.ToDto());
+        async Task<Result<FlagDto>> IGetFlagApplication.Execute(string flagName) => await GetFromDb(flagName)
+            .Bind(flag => flag ?? Result.NotFound<FlagEntity>("Flag Does Not Exist"))
+            .Map(x => x.ToDto());
 
         private async Task<Result<FlagEntity>> GetFromDb(string flagName)
         {

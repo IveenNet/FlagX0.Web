@@ -9,7 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B232B65F-33C
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{61421B53-CA26-46D9-9E71-E3DD0D56A450}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlagX0.UnitTests", "..\FlagX0.UnitTests\FlagX0.UnitTests.csproj", "{E9F164AA-4E19-4EF0-BB3B-F9DAAFA41AD4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlagX0.UnitTests", "..\FlagX0.UnitTests\FlagX0.UnitTests.csproj", "{E9F164AA-4E19-4EF0-BB3B-F9DAAFA41AD4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
