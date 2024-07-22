@@ -5,10 +5,13 @@ using FlagX0.Web.Infrastructure.Data;
 using FlagX0.Web.Transversal.Common;
 using Microsoft.EntityFrameworkCore;
 using ROP;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace FlagX0.Web.Application.UseCases.Flags
 {
-    public class GetPaginatedFlagApplication(ApplicationDbContext _applicationDbContext, IFlagUserDetails _flagUserDetails) : IGetPaginatedFlagApplication
+    public class GetPaginatedFlagApplication(ApplicationDbContext _applicationDbContext) : IGetPaginatedFlagApplication
     {
         public async Task<Result<Pagination<FlagDto>>> Execute(string? search, int page, int pageSize) => await ValidatePage(page)
             .Fallback(_ =>
@@ -46,8 +49,7 @@ namespace FlagX0.Web.Application.UseCases.Flags
 
         private async Task<Result<List<FlagEntity>>> GetFromDb(string? search, int page, int pageSize)
         {
-            var query = _applicationDbContext.Flags
-                .Where(a => a.UserId == _flagUserDetails.UserId);
+            var query = _applicationDbContext.Flags.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -64,8 +66,7 @@ namespace FlagX0.Web.Application.UseCases.Flags
 
         private async Task<Result<int>> TotalElements(string? search)
         {
-            var query = _applicationDbContext.Flags
-                .Where(a => a.UserId == _flagUserDetails.UserId);
+            var query = _applicationDbContext.Flags.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {

@@ -14,6 +14,7 @@ namespace FlagX0.Web.Controllers
     [Route("[controller]")]
     public class FlagsController : Controller
     {
+        /*
         private readonly ICreateFlagApplication _flagApplication;
         private readonly IGetFlagApplication _getFlagApplication;
         private readonly IUpdateFlagApplication _updateFlagApplication;
@@ -28,7 +29,7 @@ namespace FlagX0.Web.Controllers
             _deleteFlagApplication = deleteFlagApplication;
             _getPaginatedFlagApplication = getPaginatedFlagApplication;
         }
-        /*        [HttpGet("")]
+                [HttpGet("")]
         [HttpGet("(page:int)")]
         public async Task<IActionResult> Index(string)
         {
@@ -42,6 +43,11 @@ namespace FlagX0.Web.Controllers
             ModelState.AddModelError(string.Empty, result.Errors.FirstOrDefault()?.Message ?? "An error occurred.");
             return View(new FlagIndexViewModel() { Flags = new List<FlagDto>() });
         }*/
+
+        private readonly FlagsApplication _flagsApplication;
+
+        public FlagsController(FlagsApplication flagsApplication) { _flagsApplication = flagsApplication; }
+
         [HttpGet("")]
         [HttpGet("(page:int)")]
         public async Task<IActionResult> Index(string? search,
@@ -49,7 +55,7 @@ namespace FlagX0.Web.Controllers
         {
             if (!ModelState.IsValid) page = 1;
 
-            var listFlags = (await _getPaginatedFlagApplication.Execute(search, page, size)).Throw();
+            var listFlags = (await _flagsApplication.GetPaginated.Execute(search, page, size)).Throw();
 
             // Manejo de errores, redirigir o mostrar un mensaje
             return View(new FlagIndexViewModel() { Pagination = listFlags });
@@ -61,7 +67,7 @@ namespace FlagX0.Web.Controllers
             // Añadir logging para ver si se llama al método
             Debug.WriteLine($"GetSingle llamado con flagName: {flagName}");
 
-            var singleFlagResult = await _getFlagApplication.Execute(flagName);
+            var singleFlagResult = await _flagsApplication.Get.Execute(flagName);
 
             if (!singleFlagResult.Success)
             {
@@ -83,7 +89,7 @@ namespace FlagX0.Web.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> Create(FlagViewModel request)
         {
-            Result<bool> isCreated = await _flagApplication.Execute(request.Name, request.IsEnabled);
+            Result<bool> isCreated = await _flagsApplication.Add.Execute(request.Name, request.IsEnabled);
 
             if (ModelState.IsValid)
             {
@@ -116,7 +122,7 @@ namespace FlagX0.Web.Controllers
             // Añadir logging para ver si se llama al método
             Debug.WriteLine($"Update llamado con flagName: {flag.Name}");
 
-            var singleFlagResult = await _updateFlagApplication.Execute(flag);
+            var singleFlagResult = await _flagsApplication.Update.Execute(flag);
 
             if (!singleFlagResult.Success)
             {
@@ -130,7 +136,7 @@ namespace FlagX0.Web.Controllers
         [HttpGet("delete/{flagName}")]
         public async Task<IActionResult> Delete(string flagName)
         {
-            var isDeleted = await _deleteFlagApplication.Execute(flagName);
+            var isDeleted = await _flagsApplication.Delete.Execute(flagName);
 
             if (isDeleted.Success) return RedirectToAction("");
 

@@ -7,12 +7,12 @@ using ROP;
 
 namespace FlagX0.Web.Application.UseCases.Flags
 {
-    public class GetFlagApplication(ApplicationDbContext _applicationDbContext, IFlagUserDetails _flagUserDetails) : IGetFlagApplication
+    public class GetFlagApplication(ApplicationDbContext _applicationDbContext) : IGetFlagApplication
     {
 
         async Task<Result<List<FlagDto>>> IGetFlagApplication.Execute()
         {
-            var response = await _applicationDbContext.Flags.Where(a => a.UserId == _flagUserDetails.UserId).AsNoTracking().ToListAsync();
+            var response = await _applicationDbContext.Flags.AsNoTracking().ToListAsync();
             return response.Select(a => new FlagDto(a.Name, a.Value, a.Id)).ToList();
         }
 
@@ -22,7 +22,7 @@ namespace FlagX0.Web.Application.UseCases.Flags
         {
             var normalizedFlagName = flagName.ToLower();
             var flag = await _applicationDbContext.Flags
-                .Where(a => a.UserId == _flagUserDetails.UserId && a.Name.ToLower() == normalizedFlagName)
+                .Where(a => a.Name.ToLower() == normalizedFlagName)
                 .AsNoTracking()
                 .SingleOrDefaultAsync();
 

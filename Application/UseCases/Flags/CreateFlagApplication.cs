@@ -37,18 +37,16 @@
 
         public async Task<Result<bool>> Execute(string flagName, bool isActive) => await ValidateFlag(flagName).Bind(x => AddFlagToDatabase(x, isActive));
 
-            private async Task<Result<string>> ValidateFlag(string flagName)
-            {
-            var flags = await _applicationDbContext.Flags
-                .Where(a => a.UserId == _flagUserDetails.UserId)
-                .ToListAsync();
+        private async Task<Result<string>> ValidateFlag(string flagName)
+        {
+            var flags = await _applicationDbContext.Flags.ToListAsync();
 
             bool flagExist = flags.Any(a => a.Name.Equals(flagName, StringComparison.InvariantCulture));
-
+    
             if (flagExist) return Result.Failure<string>("Flag name already exists");
 
-                return flagName;
-            }
+            return flagName;
+        }
 
 
         private async Task<Result<bool>> AddFlagToDatabase(string flagName, bool isActive)

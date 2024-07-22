@@ -6,12 +6,12 @@ using ROP;
 
 namespace FlagX0.Web.Application.UseCases.Flags
 {
-    public class DeleteFlagApplication(ApplicationDbContext _applicationDbContext,  IFlagUserDetails _flagUserDetails) : IDeleteFlagApplication
+    public class DeleteFlagApplication(ApplicationDbContext _applicationDbContext) : IDeleteFlagApplication
     {
         public async Task<Result<bool>> Execute(string flagName) => await GetEntity(flagName).Bind(DeleteEntity);
 
         private async Task<Result<FlagEntity>> GetEntity(string flagName) => await _applicationDbContext.Flags
-                .Where(a => a.UserId == _flagUserDetails.UserId && a.Name.ToLower() == flagName)
+                .Where(a => a.Name.ToLower() == flagName)
                 .SingleAsync();
 
         private async Task<Result<bool>> DeleteEntity(FlagEntity entity)

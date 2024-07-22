@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace FlagX0.Web.Application.UseCases.Flags;
 
-public class UpdateFlagApplication(ApplicationDbContext _applicationDbContext, IFlagUserDetails _flagUserDetails) : IUpdateFlagApplication
+public class UpdateFlagApplication(ApplicationDbContext _applicationDbContext) : IUpdateFlagApplication
 {
     public async Task<Result<FlagDto>> Execute(FlagDto flagDto) => await VerifyIsTheOnlyOneWithThatName(flagDto)
         .Bind(x => GetFromDb(x.Id))
@@ -19,9 +19,7 @@ public class UpdateFlagApplication(ApplicationDbContext _applicationDbContext, I
     {
         var normalizedDtoName = dto.Name.ToLower();
         bool alreadyExist = await _applicationDbContext.Flags
-            .AnyAsync(a => a.UserId == _flagUserDetails.UserId &&
-                a.Name.ToLower() == normalizedDtoName &&
-                a.Id != dto.Id);
+            .AnyAsync(a => a.Name.ToLower() == normalizedDtoName && a.Id != dto.Id);
 
         if (alreadyExist) return Result.Failure<FlagDto>("Flag with the same name already exists");
 
@@ -31,7 +29,7 @@ public class UpdateFlagApplication(ApplicationDbContext _applicationDbContext, I
     private async Task<Result<FlagEntity>> GetFromDb(int id)
     {
         var flag = await _applicationDbContext.Flags
-            .Where(a => a.UserId == _flagUserDetails.UserId && a.Id == id)
+            .Where(a => a.Id == id)
             .SingleOrDefaultAsync();
 
         if (flag == null)

@@ -49,6 +49,7 @@ builder.Services.AddScoped<IFlagUserDetails, FlagUserDetails>();
 builder.Services.AddScoped<IUpdateFlagApplication,  UpdateFlagApplication>();
 builder.Services.AddScoped<IDeleteFlagApplication,  DeleteFlagApplication>();
 builder.Services.AddScoped<IGetPaginatedFlagApplication,  GetPaginatedFlagApplication>();
+builder.Services.AddScoped<FlagsApplication>();
 
 var app = builder.Build();
 
